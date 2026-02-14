@@ -90,9 +90,11 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
             int y = i / piece->raw.width + piece->pos.y;
             int pos = x + 10 * y;
             int posFuture = pos + 10;
+            if (piece->raw.tiles[i]){
             if (posFuture >= 180 || grid[posFuture] == true){
                 isPossible = false;
                 markGrid = true;
+                }
             }
         }
         if (isPossible){
@@ -115,6 +117,63 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
     return false;
 }
 
+int getHorizontalMove(float dt) {
+    const float das = 0.12f;   // Délai avant auto-repeat
+    const float arr = 0.05f;   // Intervalle de repeat
+    static float holdTimer = 0.0f;
+    static float repeatTimer = 0.0f;
+    static int heldDir = 0;     // -1 gauche, +1 droite
+
+    int pressedDir = 0;
+    if (IsKeyPressed(KEY_LEFT)) {
+        pressedDir = -1;
+    } else if (IsKeyPressed(KEY_RIGHT)) {
+        pressedDir = 1;
+    }
+    if (pressedDir != 0) {
+        heldDir = pressedDir;
+        holdTimer = 0.0f;
+        repeatTimer = 0.0f;
+        return heldDir;
+    }
+
+    bool leftDown = IsKeyDown(KEY_LEFT);
+    bool rightDown = IsKeyDown(KEY_RIGHT);
+    int downDir = 0;
+    if (leftDown && !rightDown) {
+        downDir = -1;
+    } else if (rightDown && !leftDown) {
+        downDir = 1;
+    }
+
+    if (downDir == 0) {
+        heldDir = 0;
+        holdTimer = 0.0f;
+        repeatTimer = 0.0f;
+        return 0;
+    }
+
+    if (downDir != heldDir) {
+        heldDir = downDir;
+        holdTimer = 0.0f;
+        repeatTimer = 0.0f;
+        return heldDir;
+    }
+
+    holdTimer += dt;
+    if (holdTimer < das) {
+        return 0;
+    }
+
+    repeatTimer += dt;
+    if (repeatTimer >= arr) {
+        repeatTimer -= arr;
+        return heldDir;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     InitWindow(screenWidth, screenHeight, "Tetris");
@@ -126,47 +185,32 @@ int main(void)
     drawUI();
 
     SetTargetFPS(60);
-    float fallTimer = 0.0f;
-    float fallStep = 0.5f;    // 2 updates/sec pour la chute
 
-    float moveTimer = 0.0f;
-    float moveStep = 0.1f; 
+    float fallTimer = 0.0f;
+    const float fallStep = 0.5f;    // 2 updates/sec pour la chute
 
     bool mainGrid[180];
     for (int i = 0; i<180;i++){
         mainGrid[i] = false;
     }
+
     bool dropped = false;
-    int horizontalMov = 0;
     //--------------------------------------------------------------------------------------
 
-    
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
         // Update
         //----------------------------------------------------------------------------------
         
-        if (IsKeyDown(KEY_RIGHT)) {
-            horizontalMov ++;
-        }
-        if (IsKeyDown(KEY_LEFT)) {
-            horizontalMov --;
-        }
-        
-        moveTimer += GetFrameTime();
-        if (moveTimer >= moveStep){
-            bool mov = updatePiece(&tetrominos[numberOfTetrominos - 1], false, horizontalMov, false, mainGrid);
-            horizontalMov = 0;
-            moveTimer = 0.0f;
-        }
-        
-        
+        float dt = GetFrameTime();
+        int moveCmd = getHorizontalMove(dt);
+        if (moveCmd != 0) updatePiece(&tetrominos[numberOfTetrominos-1], false, moveCmd, false, mainGrid);
 
-        fallTimer += GetFrameTime();
+        fallTimer += dt;
         if (fallTimer >= fallStep) {
-            dropped = updatePiece(&tetrominos[numberOfTetrominos - 1], false, horizontalMov, true, mainGrid);
-            fallTimer = 0.0f;
+            dropped = updatePiece(&tetrominos[numberOfTetrominos - 1], false, 0, true, mainGrid);
+            fallTimer -= fallStep;
         }
         if (dropped){
             tetrominos[numberOfTetrominos] = *initTetromino(100, getPool());
