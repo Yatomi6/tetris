@@ -1,0 +1,13 @@
+# Build artifacts
+*.o
+*.a
+*.so
+*.out
+
+# Binaries
+tetris
+tetris-san
+
+# Crash dumps
+core
+core.*
