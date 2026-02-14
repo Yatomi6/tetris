@@ -32,19 +32,87 @@ void drawTetromino(struct tetromino piece)
 struct tetromino * initTetromino(int seed, struct rawTetromino ** pool)
 {
     struct tetromino * new = malloc(sizeof(struct tetromino));
-    new->raw = *pool[seed % 1];
+    new->raw = *pool[seed % 3];
     new->pos.x = 5;
     new->pos.y = 0;
     return new;
 }
 
-void updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplacement, bool descend)
+bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplacement, bool descend, bool * grid)
 {
     (void) rotation;
-    (void) horinzontalDeplacement;
-    if (descend) {
-        piece->pos.y += 1;
+    
+    if (horinzontalDeplacement != 0){
+        if (horinzontalDeplacement > 0){
+            bool isPossible = true;
+            int tileNumber = piece->raw.width * piece->raw.width;
+            for (int i = 0; i<tileNumber; i++){
+                int x = i % piece->raw.width + piece->pos.x;
+                int y = i / piece->raw.width + piece->pos.y;
+                int pos = x + 10 * y;
+                int posFuture = pos + 1;
+                if (piece->raw.tiles[i]){
+                if (x+1 == 10 || grid[posFuture] == true){
+                    isPossible = false;
+                    }
+                }
+            }
+            if (isPossible){
+                piece->pos.x += 1;
+            }
+        }
+        else{
+            bool isPossible = true;
+            int tileNumber = piece->raw.width * piece->raw.width;
+            for (int i = 0; i<tileNumber; i++){
+                int x = i % piece->raw.width + piece->pos.x;
+                int y = i / piece->raw.width + piece->pos.y;
+                int pos = x + 10 * y;
+                int posFuture = pos - 1;
+                if (piece->raw.tiles[i]){
+                    if (x == 0 || grid[posFuture] == true){
+                        isPossible = false;
+                    }
+                }
+            }
+            if (isPossible){
+                piece->pos.x -= 1;
+            }
+        }
     }
+
+    bool markGrid = false;
+    if (descend) {
+        bool isPossible = true;
+        int tileNumber = piece->raw.width * piece->raw.width;
+        for (int i = 0; i<tileNumber; i++){
+            int x = i % piece->raw.width + piece->pos.x;
+            int y = i / piece->raw.width + piece->pos.y;
+            int pos = x + 10 * y;
+            int posFuture = pos + 10;
+            if (posFuture >= 180 || grid[posFuture] == true){
+                isPossible = false;
+                markGrid = true;
+            }
+        }
+        if (isPossible){
+            piece->pos.y += 1;
+        }
+    }
+
+    if (markGrid){
+        int tileNumber = piece->raw.width * piece->raw.width;
+        for (int i = 0; i<tileNumber; i++){
+            int x = i % piece->raw.width + piece->pos.x;
+            int y = i / piece->raw.width + piece->pos.y;
+            int pos = x + 10 * y;
+            if (piece->raw.tiles[i]){
+                grid[pos] = true;
+            }
+        }
+        return true;
+    }
+    return false;
 }
 
 int main(void)
@@ -60,6 +128,16 @@ int main(void)
     SetTargetFPS(60);
     float fallTimer = 0.0f;
     float fallStep = 0.5f;    // 2 updates/sec pour la chute
+
+    float moveTimer = 0.0f;
+    float moveStep = 0.1f; 
+
+    bool mainGrid[180];
+    for (int i = 0; i<180;i++){
+        mainGrid[i] = false;
+    }
+    bool dropped = false;
+    int horizontalMov = 0;
     //--------------------------------------------------------------------------------------
 
     
@@ -68,10 +146,32 @@ int main(void)
     {
         // Update
         //----------------------------------------------------------------------------------
+        
+        if (IsKeyDown(KEY_RIGHT)) {
+            horizontalMov ++;
+        }
+        if (IsKeyDown(KEY_LEFT)) {
+            horizontalMov --;
+        }
+        
+        moveTimer += GetFrameTime();
+        if (moveTimer >= moveStep){
+            bool mov = updatePiece(&tetrominos[numberOfTetrominos - 1], false, horizontalMov, false, mainGrid);
+            horizontalMov = 0;
+            moveTimer = 0.0f;
+        }
+        
+        
+
         fallTimer += GetFrameTime();
         if (fallTimer >= fallStep) {
-            updatePiece(&tetrominos[0], false, 0, true);
+            dropped = updatePiece(&tetrominos[numberOfTetrominos - 1], false, horizontalMov, true, mainGrid);
             fallTimer = 0.0f;
+        }
+        if (dropped){
+            tetrominos[numberOfTetrominos] = *initTetromino(100, getPool());
+            numberOfTetrominos ++;
+            dropped = false;
         }
         // TODO: Update your variables here
         //----------------------------------------------------------------------------------

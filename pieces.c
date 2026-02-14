@@ -22,7 +22,18 @@ struct rawTetromino L = {
     .color = BLUE
 };
 
-struct rawTetromino * pool[] = {&L, &J};
+struct rawTetromino T = {
+    .width = 3,
+    .height = 3,
+    .tiles = {
+        0, 1, 0,
+        1, 1, 1,
+        0, 0, 0
+    },
+    .color = BLUE
+};
+
+struct rawTetromino * pool[] = {&L, &J, &T};
 
 struct rawTetromino ** getPool()
 {
