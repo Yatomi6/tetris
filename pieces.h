@@ -5,7 +5,9 @@ struct position{
 };
 
 struct rawTetromino {
-    int tiles[16];
+    int width;
+    int height;
+    int tiles[9];
     struct Color color;
 };
 
@@ -14,4 +16,4 @@ struct tetromino {
     struct position pos;
 };
 
-struct rawTetromino * getPool();
+struct rawTetromino ** getPool();

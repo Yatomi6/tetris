@@ -18,10 +18,10 @@
 #define rightGridCoord (leftGridCoord + tilesOnWidth * tilesSize)
 
 void updatePiece(
-    struct tetromino piece, 
+    struct tetromino * piece, 
     bool rotation, 
     int horinzontalDeplacement,
     bool descend
 );
 
-struct tetromino * initTetromino(int seed, struct rawTetromino * pool);
+struct tetromino * initTetromino(int seed, struct rawTetromino ** pool);
