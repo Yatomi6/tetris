@@ -1,6 +1,7 @@
 #include "pieces.h"
 
 struct rawTetromino J = {
+    .name = "J",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -12,6 +13,7 @@ struct rawTetromino J = {
 };
 
 struct rawTetromino J90 = {
+    .name = "J90",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -23,6 +25,7 @@ struct rawTetromino J90 = {
 };
 
 struct rawTetromino J180 = {
+    .name = "J180",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -34,6 +37,7 @@ struct rawTetromino J180 = {
 };
 
 struct rawTetromino J270 = {
+    .name = "J270",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -45,6 +49,7 @@ struct rawTetromino J270 = {
 };
 
 struct rawTetromino L = {
+    .name = "L",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -56,6 +61,7 @@ struct rawTetromino L = {
 };
 
 struct rawTetromino L90 = {
+    .name = "L90",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -66,6 +72,7 @@ struct rawTetromino L90 = {
     .color = BLUE
 };
 struct rawTetromino L180 = {
+    .name = "L180",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -76,6 +83,7 @@ struct rawTetromino L180 = {
     .color = BLUE
 };
 struct rawTetromino L270 = {
+    .name = "L270",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -87,6 +95,7 @@ struct rawTetromino L270 = {
 };
 
 struct rawTetromino T = {
+    .name = "T",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -97,6 +106,7 @@ struct rawTetromino T = {
     .color = PURPLE
 };
 struct rawTetromino T90 = {
+    .name = "T90",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -107,6 +117,7 @@ struct rawTetromino T90 = {
     .color = PURPLE
 };
 struct rawTetromino T180 = {
+    .name = "T180",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -117,6 +128,7 @@ struct rawTetromino T180 = {
     .color = PURPLE
 };
 struct rawTetromino T270 = {
+    .name = "T270",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -128,6 +140,7 @@ struct rawTetromino T270 = {
 };
 
 struct rawTetromino S = {
+    .name = "S",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -138,6 +151,7 @@ struct rawTetromino S = {
     .color = GREEN
 };
 struct rawTetromino S90 = {
+    .name = "S90",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -149,6 +163,7 @@ struct rawTetromino S90 = {
 };
 
 struct rawTetromino S180 = {
+    .name = "S180",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -160,6 +175,7 @@ struct rawTetromino S180 = {
 };
 
 struct rawTetromino S270 = {
+    .name = "S270",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -172,6 +188,7 @@ struct rawTetromino S270 = {
 
 
 struct rawTetromino Z = {
+    .name = "Z",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -182,6 +199,7 @@ struct rawTetromino Z = {
     .color = RED
 };
 struct rawTetromino Z90 = {
+    .name = "Z90",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -192,6 +210,7 @@ struct rawTetromino Z90 = {
     .color = RED
 };
 struct rawTetromino Z180 = {
+    .name = "Z180",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -202,6 +221,7 @@ struct rawTetromino Z180 = {
     .color = RED
 };
 struct rawTetromino Z270 = {
+    .name = "Z270",
     .width = 3,
     .height = 3,
     .tiles = {
@@ -229,4 +249,12 @@ struct rawTetromino ** getPool()
 struct rawTetromino ** getRotationPool()
 {
     return rotationPool;
+}
+
+void changeTetrominoRawByName(char * rotatedPiece, struct tetromino * piece){
+    for (int i = 0; i<(int)(sizeof(rotationPool)/sizeof(rotationPool[0])); i++){
+        if (strcmp(rotationPool[i]->name, rotatedPiece) == 0){
+            piece->raw = *rotationPool[i];
+        }
+    }
 }

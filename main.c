@@ -41,7 +41,31 @@ struct tetromino * initTetromino(struct rawTetromino ** pool)
 bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplacement, bool descend, bool * grid)
 {
     (void) rotation;
-    
+    if (rotation){
+        //bool isPossible = true;
+        char rotatedPiece[10];   // buffer pour la nouvelle chaîne
+        rotatedPiece[0] = piece->raw.name[0];  // copie du premier caractère
+        rotatedPiece[1] = '\0';     // on termine la chaîne
+
+        if (piece->raw.name[1] == '\0') {
+            strcat(rotatedPiece, "90");
+        }
+        else if (strcmp(&piece->raw.name[1], "90") == 0) {
+            strcat(rotatedPiece, "180");
+        }
+        else if (strcmp(&piece->raw.name[1], "180") == 0) {
+            strcat(rotatedPiece, "270");
+        }
+        else if (strcmp(&piece->raw.name[1], "270") == 0) {
+        }
+        else {
+            printf("Rotation non trouvée!\n");
+            return false;
+        }
+        changeTetrominoRawByName(rotatedPiece, piece);
+        return true;
+    }
+
     if (horinzontalDeplacement != 0){
         if (horinzontalDeplacement > 0){
             bool isPossible = true;
@@ -207,6 +231,39 @@ int getVerticalMove(float dt)
     return 0;
 }
 
+int getRotationMove(float dt)
+{
+    const float das = 0.12f;   // Delai avant auto-repeat
+    const float arr = 0.05f;   // Intervalle de repeat
+    static float holdTimer = 0.0f;
+    static float repeatTimer = 0.0f;
+
+    if (IsKeyPressed(KEY_UP)) {
+        holdTimer = 0.0f;
+        repeatTimer = 0.0f;
+        return 1;
+    }
+
+    if (!IsKeyDown(KEY_UP)) {
+        holdTimer = 0.0f;
+        repeatTimer = 0.0f;
+        return 0;
+    }
+
+    holdTimer += dt;
+    if (holdTimer < das) {
+        return 0;
+    }
+
+    repeatTimer += dt;
+    if (repeatTimer >= arr) {
+        repeatTimer -= arr;
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
     srand(1);
@@ -238,13 +295,20 @@ int main(void)
         //----------------------------------------------------------------------------------
         
         float dt = GetFrameTime();
+
         int moveCmd = getHorizontalMove(dt);
         if (moveCmd != 0){
             updatePiece(&tetrominos[numberOfTetrominos-1], false, moveCmd, false, mainGrid);
         }
+
         int moveVerticalCommand = getVerticalMove(dt);
         if (moveVerticalCommand != 0){
             dropped = updatePiece(&tetrominos[numberOfTetrominos-1], false, 0, true, mainGrid) || dropped;
+        }
+
+        int rotateCommand = getRotationMove(dt);
+        if (rotateCommand != 0){
+            updatePiece(&tetrominos[numberOfTetrominos-1], true, 0, false, mainGrid);
         }
 
         fallTimer += dt;
