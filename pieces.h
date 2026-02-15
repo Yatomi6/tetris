@@ -17,3 +17,4 @@ struct tetromino {
 };
 
 struct rawTetromino ** getPool();
+struct rawTetromino ** getRotationPool();

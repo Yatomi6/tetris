@@ -29,10 +29,10 @@ void drawTetromino(struct tetromino piece)
     }
 }
 
-struct tetromino * initTetromino(int seed, struct rawTetromino ** pool)
+struct tetromino * initTetromino(struct rawTetromino ** pool)
 {
     struct tetromino * new = malloc(sizeof(struct tetromino));
-    new->raw = *pool[seed % 3];
+    new->raw = *pool[rand() % 5];
     new->pos.x = 5;
     new->pos.y = 0;
     return new;
@@ -174,12 +174,46 @@ int getHorizontalMove(float dt) {
     return 0;
 }
 
+int getVerticalMove(float dt)
+{
+    const float das = 0.12f;   // Délai avant auto-repeat
+    const float arr = 0.05f;   // Intervalle de repeat
+    static float holdTimer = 0.0f;
+    static float repeatTimer = 0.0f;
+
+    if (IsKeyPressed(KEY_DOWN)) {
+        holdTimer = 0.0f;
+        repeatTimer = 0.0f;
+        return 1;
+    }
+
+    if (!IsKeyDown(KEY_DOWN)) {
+        holdTimer = 0.0f;
+        repeatTimer = 0.0f;
+        return 0;
+    }
+
+    holdTimer += dt;
+    if (holdTimer < das) {
+        return 0;
+    }
+
+    repeatTimer += dt;
+    if (repeatTimer >= arr) {
+        repeatTimer -= arr;
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void)
 {
+    srand(1);
     InitWindow(screenWidth, screenHeight, "Tetris");
 
     struct tetromino * tetrominos = malloc(100 * sizeof(struct tetromino));
-    tetrominos[0] = *initTetromino(100, getPool());
+    tetrominos[0] = *initTetromino(getPool());
     int numberOfTetrominos = 1;
 
     drawUI();
@@ -205,15 +239,21 @@ int main(void)
         
         float dt = GetFrameTime();
         int moveCmd = getHorizontalMove(dt);
-        if (moveCmd != 0) updatePiece(&tetrominos[numberOfTetrominos-1], false, moveCmd, false, mainGrid);
+        if (moveCmd != 0){
+            updatePiece(&tetrominos[numberOfTetrominos-1], false, moveCmd, false, mainGrid);
+        }
+        int moveVerticalCommand = getVerticalMove(dt);
+        if (moveVerticalCommand != 0){
+            dropped = updatePiece(&tetrominos[numberOfTetrominos-1], false, 0, true, mainGrid) || dropped;
+        }
 
         fallTimer += dt;
         if (fallTimer >= fallStep) {
-            dropped = updatePiece(&tetrominos[numberOfTetrominos - 1], false, 0, true, mainGrid);
+            dropped = updatePiece(&tetrominos[numberOfTetrominos - 1], false, 0, true, mainGrid) || dropped;
             fallTimer -= fallStep;
         }
         if (dropped){
-            tetrominos[numberOfTetrominos] = *initTetromino(100, getPool());
+            tetrominos[numberOfTetrominos] = *initTetromino(getPool());
             numberOfTetrominos ++;
             dropped = false;
         }
@@ -241,6 +281,6 @@ int main(void)
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
-
+    free(tetrominos);
     return 0;
 }

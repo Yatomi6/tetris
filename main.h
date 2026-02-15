@@ -25,7 +25,7 @@ bool updatePiece(
     bool * grid
 );
 
-struct tetromino * initTetromino(int seed, struct rawTetromino ** pool);
+struct tetromino * initTetromino(struct rawTetromino ** pool);
 
 struct grid{
     bool tiles[180];
