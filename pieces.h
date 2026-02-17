@@ -45,3 +45,24 @@ extern struct wallKick wallKick2270;
 extern struct wallKick wallKick3270;
 extern struct wallKick wallKick4270;
 extern struct wallKick wallKick5270;
+
+// I tetromino wall kick offsets (Test 2..5) for clockwise rotations
+extern struct position iWallKick20;
+extern struct position iWallKick30;
+extern struct position iWallKick40;
+extern struct position iWallKick50;
+
+extern struct position iWallKick290;
+extern struct position iWallKick390;
+extern struct position iWallKick490;
+extern struct position iWallKick590;
+
+extern struct position iWallKick2180;
+extern struct position iWallKick3180;
+extern struct position iWallKick4180;
+extern struct position iWallKick5180;
+
+extern struct position iWallKick2270;
+extern struct position iWallKick3270;
+extern struct position iWallKick4270;
+extern struct position iWallKick5270;

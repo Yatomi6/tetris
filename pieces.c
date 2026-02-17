@@ -62,7 +62,7 @@ struct rawTetromino L = {
         0, 0, 0, 0,
         0, 0, 0, 0
     },
-    .color = BLUE
+    .color = DARKBLUE
 };
 
 struct rawTetromino L90 = {
@@ -75,7 +75,7 @@ struct rawTetromino L90 = {
         0, 1, 1, 0,
         0, 0, 0, 0
     },
-    .color = BLUE
+    .color = DARKBLUE
 };
 struct rawTetromino L180 = {
     .name = "L180",
@@ -87,7 +87,7 @@ struct rawTetromino L180 = {
         1, 0, 0, 0,
         0, 0, 0, 0
     },
-    .color = BLUE
+    .color = DARKBLUE
 };
 struct rawTetromino L270 = {
     .name = "L270",
@@ -99,7 +99,7 @@ struct rawTetromino L270 = {
         0, 1, 0, 0,
         0, 0, 0, 0
     },
-    .color = BLUE
+    .color = DARKBLUE
 };
 
 struct rawTetromino T = {
@@ -249,7 +249,7 @@ struct rawTetromino Z270 = {
         0, 1, 0, 0,
         0, 0, 0, 0
     },
-    .color = YELLOW
+    .color = RED
 };
 
 struct rawTetromino O = {
@@ -265,7 +265,56 @@ struct rawTetromino O = {
     .color = YELLOW
 };
 
-struct rawTetromino * pool[] = {&L, &J, &T, &S, &Z, &O};
+struct rawTetromino I = {
+    .name = "I",
+    .width = 4,
+    .height = 4,
+    .tiles = {
+        0, 0, 0, 0,
+        1, 1, 1, 1,
+        0, 0, 0, 0,
+        0, 0, 0, 0
+    },
+    .color = BLUE
+};
+struct rawTetromino I90 = {
+    .name = "I90",
+    .width = 4,
+    .height = 4,
+    .tiles = {
+        0, 0, 1, 0,
+        0, 0, 1, 0,
+        0, 0, 1, 0,
+        0, 0, 1, 0
+    },
+    .color = BLUE
+};
+struct rawTetromino I180 = {
+    .name = "I180",
+    .width = 4,
+    .height = 4,
+    .tiles = {
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        1, 1, 1, 1,
+        0, 0, 0, 0
+    },
+    .color = BLUE
+};
+struct rawTetromino I270 = {
+    .name = "I270",
+    .width = 4,
+    .height = 4,
+    .tiles = {
+        0, 1, 0, 0,
+        0, 1, 0, 0,
+        0, 1, 0, 0,
+        0, 1, 0, 0
+    },
+    .color = BLUE
+};
+
+struct rawTetromino * pool[] = {&L, &J, &T, &S, &Z, &O, &I};
 
 struct rawTetromino * rotationPool[] = {
     &L, &L90, &L180, &L270, 
@@ -273,7 +322,8 @@ struct rawTetromino * rotationPool[] = {
     &T, &T90, &T180, &T270, 
     &S, &S90, &S180, &S270,
     &Z, &Z90, &Z180, &Z270,
-    &O};
+    &O,
+    &I, &I90, &I180, &I270};
 
 struct rawTetromino ** getPool()
 {
@@ -424,3 +474,25 @@ struct wallKick wallKick5270 = {
         .y = -1
     }
 };
+
+// I tetromino wall kick offsets (clockwise: 0->90, 90->180, 180->270, 270->0)
+// Test 1 is always (0, 0) and is already handled before these offsets.
+struct position iWallKick20 = {.x = -2, .y = 0};
+struct position iWallKick30 = {.x = 1, .y = 0};
+struct position iWallKick40 = {.x = -2, .y = -1};
+struct position iWallKick50 = {.x = 1, .y = 2};
+
+struct position iWallKick290 = {.x = -1, .y = 0};
+struct position iWallKick390 = {.x = 2, .y = 0};
+struct position iWallKick490 = {.x = -1, .y = 2};
+struct position iWallKick590 = {.x = 2, .y = -1};
+
+struct position iWallKick2180 = {.x = 2, .y = 0};
+struct position iWallKick3180 = {.x = -1, .y = 0};
+struct position iWallKick4180 = {.x = 2, .y = 1};
+struct position iWallKick5180 = {.x = -1, .y = -2};
+
+struct position iWallKick2270 = {.x = 1, .y = 0};
+struct position iWallKick3270 = {.x = -2, .y = 0};
+struct position iWallKick4270 = {.x = 1, .y = -2};
+struct position iWallKick5270 = {.x = -2, .y = 1};

@@ -37,7 +37,7 @@ void drawTile(int x, int y, struct Color color){
 struct tetromino * initTetromino(struct rawTetromino ** pool)
 {
     struct tetromino * new = malloc(sizeof(struct tetromino));
-    new->raw = *pool[rand() % 6];
+    new->raw = *pool[rand() % 7];
     new->pos.x = 3;
     new->pos.y = 0;
     return new;
@@ -89,12 +89,18 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
         rotatedPiece[1] = '\0';
 
         const struct wallKick * kickSet[4] = {0};
+        const struct position * iKickSet[4] = {0};
+        bool isIShape = (oldName[0] == 'I');
         if (oldName[1] == '\0') {
             strcat(rotatedPiece, "90");
             kickSet[0] = &wallKick2;
             kickSet[1] = &wallKick3;
             kickSet[2] = &wallKick4;
             kickSet[3] = &wallKick5;
+            iKickSet[0] = &iWallKick20;
+            iKickSet[1] = &iWallKick30;
+            iKickSet[2] = &iWallKick40;
+            iKickSet[3] = &iWallKick50;
         }
         else if (strcmp(&oldName[1], "90") == 0) {
             strcat(rotatedPiece, "180");
@@ -102,6 +108,10 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
             kickSet[1] = &wallKick390;
             kickSet[2] = &wallKick490;
             kickSet[3] = &wallKick590;
+            iKickSet[0] = &iWallKick290;
+            iKickSet[1] = &iWallKick390;
+            iKickSet[2] = &iWallKick490;
+            iKickSet[3] = &iWallKick590;
         }
         else if (strcmp(&oldName[1], "180") == 0) {
             strcat(rotatedPiece, "270");
@@ -109,12 +119,20 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
             kickSet[1] = &wallKick3180;
             kickSet[2] = &wallKick4180;
             kickSet[3] = &wallKick5180;
+            iKickSet[0] = &iWallKick2180;
+            iKickSet[1] = &iWallKick3180;
+            iKickSet[2] = &iWallKick4180;
+            iKickSet[3] = &iWallKick5180;
         }
         else if (strcmp(&oldName[1], "270") == 0) {
             kickSet[0] = &wallKick2270;
             kickSet[1] = &wallKick3270;
             kickSet[2] = &wallKick4270;
             kickSet[3] = &wallKick5270;
+            iKickSet[0] = &iWallKick2270;
+            iKickSet[1] = &iWallKick3270;
+            iKickSet[2] = &iWallKick4270;
+            iKickSet[3] = &iWallKick5270;
         }
         else {
             printf("Rotation non trouvée!\n");
@@ -130,6 +148,10 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
         for (int i = 0; i<4; i++){
             int offsetX = kickSet[i]->pos.x;
             int offsetY = kickSet[i]->pos.y;
+            if (isIShape){
+                offsetX = iKickSet[i]->x;
+                offsetY = iKickSet[i]->y;
+            }
             if (canPlaceWithOffset(piece, offsetX, offsetY, grid)){
                 piece->pos.x += offsetX;
                 piece->pos.y += offsetY;
@@ -367,7 +389,7 @@ int getRotationMove(float dt)
 
 int main(void)
 {
-    srand(1);
+    srand(21);
     InitWindow(screenWidth, screenHeight, "Tetris");
 
     struct tetromino * currentTetrominos = malloc(sizeof(struct tetromino));
