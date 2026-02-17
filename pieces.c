@@ -258,3 +258,135 @@ void changeTetrominoRawByName(char * rotatedPiece, struct tetromino * piece){
         }
     }
 }
+
+// 4 tests for wall kicks when rotation from 0° to 90°
+struct wallKick wallKick2 = {
+    .difficulty = 0,
+    .pos = {
+        .x = -1,
+        .y = 0
+    }
+};
+
+struct wallKick wallKick3 = {
+    .difficulty = 0,
+    .pos = {
+        .x = -1,
+        .y = -1
+    }
+};
+
+struct wallKick wallKick4 = {
+    .difficulty = 0,
+    .pos = {
+        .x = 0,
+        .y = 2
+    }
+};
+
+struct wallKick wallKick5 = {
+    .difficulty = 0,
+    .pos = {
+        .x = -1,
+        .y = 2
+    }
+};
+
+// 4 tests for wall kicks when rotation from 90° to 180°
+struct wallKick wallKick290 = {
+    .difficulty = 0,
+    .pos = {
+        .x = -1,
+        .y = 0
+    }
+};
+
+struct wallKick wallKick390 = {
+    .difficulty = 0,
+    .pos = {
+        .x = 2,
+        .y = 0
+    }
+};
+
+struct wallKick wallKick490 = {
+    .difficulty = 0,
+    .pos = {
+        .x = -1,
+        .y = -2
+    }
+};
+
+struct wallKick wallKick590 = {
+    .difficulty = 0,
+    .pos = {
+        .x = 2,
+        .y = 1
+    }
+};
+
+// 4 tests for wall kicks when rotation from 180° to 270°
+struct wallKick wallKick2180 = {
+    .difficulty = 0,
+    .pos = {
+        .x = 2,
+        .y = 0
+    }
+};
+
+struct wallKick wallKick3180 = {
+    .difficulty = 0,
+    .pos = {
+        .x = -1,
+        .y = 0
+    }
+};
+
+struct wallKick wallKick4180 = {
+    .difficulty = 0,
+    .pos = {
+        .x = 2,
+        .y = -1
+    }
+};
+
+struct wallKick wallKick5180 = {
+    .difficulty = 0,
+    .pos = {
+        .x = -1,
+        .y = 2
+    }
+};
+
+// 4 tests for wall kicks when rotation from 270° to 0°
+struct wallKick wallKick2270 = {
+    .difficulty = 0,
+    .pos = {
+        .x = 1,
+        .y = 0
+    }
+};
+
+struct wallKick wallKick3270 = {
+    .difficulty = 0,
+    .pos = {
+        .x = -2,
+        .y = 0
+    }
+};
+
+struct wallKick wallKick4270 = {
+    .difficulty = 0,
+    .pos = {
+        .x = 1,
+        .y = 2
+    }
+};
+
+struct wallKick wallKick5270 = {
+    .difficulty = 0,
+    .pos = {
+        .x = -2,
+        .y = -1
+    }
+};

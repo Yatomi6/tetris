@@ -1,5 +1,4 @@
 #include "main.h"
-#include <raylib.h>
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -29,6 +28,12 @@ void drawTetromino(struct tetromino piece)
     }
 }
 
+void drawTile(int x, int y, struct Color color){
+    int gridX = leftGridCoord;
+    int gridY = topGridCoord;
+    DrawRectangle(gridX + x * tilesSize, gridY + y * tilesSize, tilesSize, tilesSize, color);
+}
+
 struct tetromino * initTetromino(struct rawTetromino ** pool)
 {
     struct tetromino * new = malloc(sizeof(struct tetromino));
@@ -38,32 +43,103 @@ struct tetromino * initTetromino(struct rawTetromino ** pool)
     return new;
 }
 
-bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplacement, bool descend, bool * grid)
+bool colorIsEqual(Color a, Color b) {
+    return a.r == b.r && a.g == b.g && a.b == b.b && a.a == b.a;
+}
+
+static bool canPlaceWithOffset(
+    const struct tetromino * piece,
+    int offsetX,
+    int offsetY,
+    const Color * grid
+)
+{
+    int tileNumber = piece->raw.width * piece->raw.width;
+    for (int i = 0; i<tileNumber; i++){
+        if (!piece->raw.tiles[i]){
+            continue;
+        }
+
+        int x = i % piece->raw.width + piece->pos.x + offsetX;
+        int y = i / piece->raw.width + piece->pos.y + offsetY;
+        if (x < 0 || x >= tilesOnWidth || y < 0 || y >= tilesOnHeight){
+            return false;
+        }
+
+        int pos = x + tilesOnWidth * y;
+        if (!colorIsEqual(grid[pos], RAYWHITE)){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplacement, bool descend, struct Color * grid)
 {
     (void) rotation;
     if (rotation){
-        //bool isPossible = true;
-        char rotatedPiece[10];   // buffer pour la nouvelle chaîne
-        rotatedPiece[0] = piece->raw.name[0];  // copie du premier caractère
-        rotatedPiece[1] = '\0';     // on termine la chaîne
+        struct rawTetromino oldRaw = piece->raw;
+        struct position oldPos = piece->pos;
+        const char * oldName = oldRaw.name;
 
-        if (piece->raw.name[1] == '\0') {
+        char rotatedPiece[10];
+        rotatedPiece[0] = oldName[0];
+        rotatedPiece[1] = '\0';
+
+        const struct wallKick * kickSet[4] = {0};
+        if (oldName[1] == '\0') {
             strcat(rotatedPiece, "90");
+            kickSet[0] = &wallKick2;
+            kickSet[1] = &wallKick3;
+            kickSet[2] = &wallKick4;
+            kickSet[3] = &wallKick5;
         }
-        else if (strcmp(&piece->raw.name[1], "90") == 0) {
+        else if (strcmp(&oldName[1], "90") == 0) {
             strcat(rotatedPiece, "180");
+            kickSet[0] = &wallKick290;
+            kickSet[1] = &wallKick390;
+            kickSet[2] = &wallKick490;
+            kickSet[3] = &wallKick590;
         }
-        else if (strcmp(&piece->raw.name[1], "180") == 0) {
+        else if (strcmp(&oldName[1], "180") == 0) {
             strcat(rotatedPiece, "270");
+            kickSet[0] = &wallKick2180;
+            kickSet[1] = &wallKick3180;
+            kickSet[2] = &wallKick4180;
+            kickSet[3] = &wallKick5180;
         }
-        else if (strcmp(&piece->raw.name[1], "270") == 0) {
+        else if (strcmp(&oldName[1], "270") == 0) {
+            kickSet[0] = &wallKick2270;
+            kickSet[1] = &wallKick3270;
+            kickSet[2] = &wallKick4270;
+            kickSet[3] = &wallKick5270;
         }
         else {
             printf("Rotation non trouvée!\n");
             return false;
         }
+
         changeTetrominoRawByName(rotatedPiece, piece);
-        return true;
+
+        if (canPlaceWithOffset(piece, 0, 0, grid)){
+            return true;
+        }
+
+        for (int i = 0; i<4; i++){
+            int offsetX = kickSet[i]->pos.x;
+            int offsetY = kickSet[i]->pos.y;
+            if (canPlaceWithOffset(piece, offsetX, offsetY, grid)){
+                piece->pos.x += offsetX;
+                piece->pos.y += offsetY;
+                return true;
+            }
+        }
+
+        piece->raw = oldRaw;
+        piece->pos = oldPos;
+        return false;
     }
 
     if (horinzontalDeplacement != 0){
@@ -76,9 +152,9 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
                 int pos = x + 10 * y;
                 int posFuture = pos + 1;
                 if (piece->raw.tiles[i]){
-                if (x+1 == 10 || grid[posFuture] == true){
-                    isPossible = false;
-                    }
+                    if (x+1 == 10 || !colorIsEqual(grid[posFuture], RAYWHITE)){
+                        isPossible = false;
+                        }
                 }
             }
             if (isPossible){
@@ -94,7 +170,7 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
                 int pos = x + 10 * y;
                 int posFuture = pos - 1;
                 if (piece->raw.tiles[i]){
-                    if (x == 0 || grid[posFuture] == true){
+                    if (x == 0 || !colorIsEqual(grid[posFuture], RAYWHITE)){
                         isPossible = false;
                     }
                 }
@@ -115,7 +191,7 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
             int pos = x + 10 * y;
             int posFuture = pos + 10;
             if (piece->raw.tiles[i]){
-            if (posFuture >= 180 || grid[posFuture] == true){
+            if (posFuture >= 180 || !colorIsEqual(grid[posFuture], RAYWHITE)){
                 isPossible = false;
                 markGrid = true;
                 }
@@ -133,7 +209,32 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
             int y = i / piece->raw.width + piece->pos.y;
             int pos = x + 10 * y;
             if (piece->raw.tiles[i]){
-                grid[pos] = true;
+                grid[pos] = piece->raw.color;
+            }
+        }
+        //check si des lignes sont completes
+        for (int i = 0; i<18; i++){
+            bool ligneComplete = true;
+            for (int j = 0; j<10; j++){
+                if (colorIsEqual(grid[i*10 + j], RAYWHITE)){
+                    ligneComplete = false;
+                    break;
+                }
+            }
+            if (ligneComplete){
+                //supprime la ligne complete
+                for (int j = 0; j<10; j++){
+                    grid[i*10 + j] = RAYWHITE;
+                }
+                // fais descendre les autres lignes
+                for (int k = i; k>0; k--){
+                    for (int j = 0; j<10; j++){
+                        if (!colorIsEqual(grid[k * 10 + j], RAYWHITE)){
+                            grid[(k+1) * 10 + j] = grid[k * 10 + j];
+                            grid[k * 10 + j] = RAYWHITE;                      
+                        }
+                    }
+                }
             }
         }
         return true;
@@ -269,8 +370,8 @@ int main(void)
     srand(1);
     InitWindow(screenWidth, screenHeight, "Tetris");
 
-    struct tetromino * tetrominos = malloc(100 * sizeof(struct tetromino));
-    tetrominos[0] = *initTetromino(getPool());
+    struct tetromino * currentTetrominos = malloc(sizeof(struct tetromino));
+    currentTetrominos = initTetromino(getPool());
     int numberOfTetrominos = 1;
 
     drawUI();
@@ -280,9 +381,10 @@ int main(void)
     float fallTimer = 0.0f;
     const float fallStep = 0.5f;    // 2 updates/sec pour la chute
 
-    bool mainGrid[180];
+    // Grille des 18 rangées de 10 tuiles
+    struct Color mainGrid[180];
     for (int i = 0; i<180;i++){
-        mainGrid[i] = false;
+        mainGrid[i] = RAYWHITE;
     }
 
     bool dropped = false;
@@ -298,26 +400,26 @@ int main(void)
 
         int moveCmd = getHorizontalMove(dt);
         if (moveCmd != 0){
-            updatePiece(&tetrominos[numberOfTetrominos-1], false, moveCmd, false, mainGrid);
+            updatePiece(currentTetrominos, false, moveCmd, false, mainGrid);
         }
 
         int moveVerticalCommand = getVerticalMove(dt);
         if (moveVerticalCommand != 0){
-            dropped = updatePiece(&tetrominos[numberOfTetrominos-1], false, 0, true, mainGrid) || dropped;
+            dropped = updatePiece(currentTetrominos, false, 0, true, mainGrid) || dropped;
         }
 
         int rotateCommand = getRotationMove(dt);
         if (rotateCommand != 0){
-            updatePiece(&tetrominos[numberOfTetrominos-1], true, 0, false, mainGrid);
+            updatePiece(currentTetrominos, true, 0, false, mainGrid);
         }
 
         fallTimer += dt;
         if (fallTimer >= fallStep) {
-            dropped = updatePiece(&tetrominos[numberOfTetrominos - 1], false, 0, true, mainGrid) || dropped;
+            dropped = updatePiece(currentTetrominos, false, 0, true, mainGrid) || dropped;
             fallTimer -= fallStep;
         }
         if (dropped){
-            tetrominos[numberOfTetrominos] = *initTetromino(getPool());
+            currentTetrominos = initTetromino(getPool());
             numberOfTetrominos ++;
             dropped = false;
         }
@@ -331,9 +433,14 @@ int main(void)
             ClearBackground(RAYWHITE);
             drawUI();
 
-            for (int i = 0; i<numberOfTetrominos; i ++){
-                drawTetromino(tetrominos[i]);
+            //Draw the tiles on the grid
+            for (int i = 0; i<180; i++){
+                drawTile(i%10, i/10, mainGrid[i]);
             }
+
+            // Draw the currently moving piece
+            drawTetromino(*currentTetrominos);
+            
             
 
 
@@ -345,6 +452,6 @@ int main(void)
     //--------------------------------------------------------------------------------------
     CloseWindow();        // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
-    free(tetrominos);
+    free(currentTetrominos);
     return 0;
 }

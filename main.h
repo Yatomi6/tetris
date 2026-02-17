@@ -1,5 +1,6 @@
 #include "pieces.h"
 #include <stdbool.h>
+#include <raylib.h>
 
 #define tilesOnWidth 10
 #define tilesOnHeight 18
@@ -17,16 +18,21 @@
 #define bottomGridCoord (topGridCoord + tilesOnHeight * tilesSize)
 #define rightGridCoord (leftGridCoord + tilesOnWidth * tilesSize)
 
+void drawTile(int x, int y, struct Color color);
+
 bool updatePiece(
     struct tetromino * piece, 
     bool rotation, 
     int horinzontalDeplacement,
     bool descend,
-    bool * grid
+    struct Color * grid
 );
+
+bool colorIsEqual(Color a, Color b);
 
 struct tetromino * initTetromino(struct rawTetromino ** pool);
 
 struct grid{
     bool tiles[180];
 };
+
