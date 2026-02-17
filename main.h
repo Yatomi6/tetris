@@ -25,7 +25,9 @@ bool updatePiece(
     bool rotation, 
     int horinzontalDeplacement,
     bool descend,
-    struct Color * grid
+    struct Color * grid,
+    int * numberOfLines,
+    int * score
 );
 
 bool colorIsEqual(Color a, Color b);

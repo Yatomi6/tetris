@@ -13,6 +13,20 @@ void drawUI()
     DrawRectangle(screenWidth - borderWidth, 0, borderWidth, screenHeight, BLACK);
 }
 
+void drawStats(int numberOfLines, int level, int score){
+    char textLine[32];
+    snprintf(textLine, sizeof(textLine), "Lignes : %d", numberOfLines);
+    DrawText(textLine, borderWidth + 10, borderWidth + 10, 20, BLACK);
+
+    char textLevel[32];
+    snprintf(textLevel, sizeof(textLevel), "Level : %d", level);
+    DrawText(textLevel, borderWidth + 10, borderWidth + 40, 20, BLACK);
+
+    char textScore[32];
+    snprintf(textScore, sizeof(textScore), "Score : %d", score);
+    DrawText(textScore, borderWidth + 10, borderWidth + 70, 20, BLACK);
+}
+
 void drawTetromino(struct tetromino piece)
 {
     int width = piece.raw.width;
@@ -76,7 +90,7 @@ static bool canPlaceWithOffset(
 }
 
 
-bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplacement, bool descend, struct Color * grid)
+bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplacement, bool descend, struct Color * grid, int * numberOfLines, int * score)
 {
     (void) rotation;
     if (rotation || strcmp(piece->raw.name, "0") == 0){
@@ -234,6 +248,7 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
                 grid[pos] = piece->raw.color;
             }
         }
+        int numberOfLinesDone = 0;
         //check si des lignes sont completes
         for (int i = 0; i<18; i++){
             bool ligneComplete = true;
@@ -244,21 +259,40 @@ bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplace
                 }
             }
             if (ligneComplete){
+                numberOfLinesDone ++;
                 //supprime la ligne complete
                 for (int j = 0; j<10; j++){
                     grid[i*10 + j] = RAYWHITE;
                 }
-                // fais descendre les autres lignes
+                // fais descendre les lignes au-dessus d'un cran
                 for (int k = i; k>0; k--){
                     for (int j = 0; j<10; j++){
-                        if (!colorIsEqual(grid[k * 10 + j], RAYWHITE)){
-                            grid[(k+1) * 10 + j] = grid[k * 10 + j];
-                            grid[k * 10 + j] = RAYWHITE;                      
-                        }
+                        grid[k * 10 + j] = grid[(k-1) * 10 + j];
                     }
                 }
+                // la première ligne devient vide
+                for (int j = 0; j<10; j++){
+                    grid[j] = RAYWHITE;
+                }
+
+                // on re-teste le même index après le shift
+                i--;
             }
         }
+        int base;
+        if (numberOfLinesDone == 1){
+            base = 40;
+        } else if (numberOfLinesDone == 2){
+            base = 100;
+        } else if (numberOfLinesDone == 3){
+            base = 300;
+        } else if (numberOfLinesDone == 4){
+            base = 1200;
+        } else {
+            base = 0;
+        }
+        *score += base * (*numberOfLines/10 + 1);
+        *numberOfLines += numberOfLinesDone;
         return true;
     }
     return false;
@@ -389,19 +423,32 @@ int getRotationMove(float dt)
 
 int main(void)
 {
-    srand(21);
+    srand(201);
+
     InitWindow(screenWidth, screenHeight, "Tetris");
 
     struct tetromino * currentTetrominos = malloc(sizeof(struct tetromino));
     currentTetrominos = initTetromino(getPool());
     int numberOfTetrominos = 1;
+    int numberOfLines = 0;
+    int level = numberOfLines/10;
+    int score = 0;
 
     drawUI();
 
     SetTargetFPS(60);
 
+    // decreasing fall steps to update evry 10 lines done.
+    float levelSpeeds[30] = {
+        4.0f/5.0f,   43.0f/60.0f, 19.0f/30.0f, 11.0f/20.0f, 7.0f/15.0f, 
+        23.0f/60.0f, 3.0f/10.0f,  13.0f/60.0f, 2.0f/15.0f,  1.0f/10.0f, 
+        1.0f/12.0f,  1.0f/12.0f,  1.0f/12.0f,  1.0f/15.0f,  1.0f/15.0f, 
+        1.0f/15.0f,  1.0f/20.0f,  1.0f/20.0f,  1.0f/20.0f,  1.0f/30.0f,
+        1.0f/30.0f,  1.0f/30.0f,  1.0f/30.0f,  1.0f/30.0f,  1.0f/30.0f, 
+        1.0f/30.0f,  1.0f/30.0f,  1.0f/30.0f,  1.0f/30.0f,  1.0f/60.0f
+    };
     float fallTimer = 0.0f;
-    const float fallStep = 0.5f;    // 2 updates/sec pour la chute
+    float fallStep = levelSpeeds[level];
 
     // Grille des 18 rangées de 10 tuiles
     struct Color mainGrid[180];
@@ -410,6 +457,7 @@ int main(void)
     }
 
     bool dropped = false;
+
     //--------------------------------------------------------------------------------------
 
     // Main game loop
@@ -420,27 +468,34 @@ int main(void)
         
         float dt = GetFrameTime();
 
+        level = numberOfLines/10;
+        if (level > 29){
+            level = 29;
+        }
+        fallStep = levelSpeeds[level];
+
         int moveCmd = getHorizontalMove(dt);
         if (moveCmd != 0){
-            updatePiece(currentTetrominos, false, moveCmd, false, mainGrid);
+            updatePiece(currentTetrominos, false, moveCmd, false, mainGrid, &numberOfLines, &score);
         }
 
         int moveVerticalCommand = getVerticalMove(dt);
         if (moveVerticalCommand != 0){
-            dropped = updatePiece(currentTetrominos, false, 0, true, mainGrid) || dropped;
+            dropped = updatePiece(currentTetrominos, false, 0, true, mainGrid, &numberOfLines, &score) || dropped;
         }
 
         int rotateCommand = getRotationMove(dt);
         if (rotateCommand != 0){
-            updatePiece(currentTetrominos, true, 0, false, mainGrid);
+            updatePiece(currentTetrominos, true, 0, false, mainGrid, &numberOfLines, &score);
         }
 
         fallTimer += dt;
         if (fallTimer >= fallStep) {
-            dropped = updatePiece(currentTetrominos, false, 0, true, mainGrid) || dropped;
+            dropped = updatePiece(currentTetrominos, false, 0, true, mainGrid, &numberOfLines, &score) || dropped;
             fallTimer -= fallStep;
         }
         if (dropped){
+            free(currentTetrominos);
             currentTetrominos = initTetromino(getPool());
             numberOfTetrominos ++;
             dropped = false;
@@ -454,7 +509,7 @@ int main(void)
 
             ClearBackground(RAYWHITE);
             drawUI();
-
+            drawStats(numberOfLines, level, score);
             //Draw the tiles on the grid
             for (int i = 0; i<180; i++){
                 drawTile(i%10, i/10, mainGrid[i]);

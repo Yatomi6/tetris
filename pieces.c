@@ -233,8 +233,8 @@ struct rawTetromino Z180 = {
     .height = 4,
     .tiles = {
         0, 0, 0, 0,
-        0, 1, 1, 0,
         1, 1, 0, 0,
+        0, 1, 1, 0,
         0, 0, 0, 0
     },
     .color = RED
@@ -244,9 +244,9 @@ struct rawTetromino Z270 = {
     .width = 4,
     .height = 4,
     .tiles = {
-        1, 0, 0, 0,
-        1, 1, 0, 0,
         0, 1, 0, 0,
+        1, 1, 0, 0,
+        1, 0, 0, 0,
         0, 0, 0, 0
     },
     .color = RED
