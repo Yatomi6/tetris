@@ -37,8 +37,8 @@ void drawTile(int x, int y, struct Color color){
 struct tetromino * initTetromino(struct rawTetromino ** pool)
 {
     struct tetromino * new = malloc(sizeof(struct tetromino));
-    new->raw = *pool[rand() % 5];
-    new->pos.x = 5;
+    new->raw = *pool[rand() % 6];
+    new->pos.x = 3;
     new->pos.y = 0;
     return new;
 }
@@ -79,7 +79,7 @@ static bool canPlaceWithOffset(
 bool updatePiece(struct tetromino * piece, bool rotation, int horinzontalDeplacement, bool descend, struct Color * grid)
 {
     (void) rotation;
-    if (rotation){
+    if (rotation || strcmp(piece->raw.name, "0") == 0){
         struct rawTetromino oldRaw = piece->raw;
         struct position oldPos = piece->pos;
         const char * oldName = oldRaw.name;

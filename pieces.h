@@ -9,7 +9,7 @@ struct rawTetromino {
     const char * name;
     int width;
     int height;
-    int tiles[9];
+    int tiles[16];
     struct Color color;
 };
 
